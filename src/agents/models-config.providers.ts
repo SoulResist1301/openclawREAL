@@ -262,7 +262,7 @@ export function normalizeProviders(params: {
       }
       // Ollama's OpenAI-compatible API requires /v1 suffix.
       const baseUrl = normalizedProvider.baseUrl?.trim();
-      if (baseUrl && !baseUrl.endsWith("/v1") && !baseUrl.endsWith("/v1/")) {
+      if (baseUrl && !/\/v1\/?$/.test(baseUrl)) {
         mutated = true;
         const separator = baseUrl.endsWith("/") ? "" : "/";
         normalizedProvider = { ...normalizedProvider, baseUrl: `${baseUrl}${separator}v1` };

@@ -213,4 +213,51 @@ describe("models-config Ollama normalization", () => {
       expect(parsed.providers.ollama?.baseUrl).toBe("http://ollama:11434/v1");
     });
   });
+
+  it("preserves baseUrl when it already ends with /v1/", async () => {
+    await withTempHome(async () => {
+      vi.resetModules();
+      const { ensureOpenClawModelsJson } = await import("./models-config.js");
+      const { resolveOpenClawAgentDir } = await import("./agent-paths.js");
+
+      // Explicit Ollama config with /v1/ already present
+      const cfg: OpenClawConfig = {
+        models: {
+          providers: {
+            ollama: {
+              baseUrl: "http://ollama:11434/v1/",
+              apiKey: "ollama",
+              models: [
+                {
+                  id: "qwen3-coder",
+                  name: "Qwen3 Coder (Local)",
+                  reasoning: false,
+                  input: ["text"],
+                  contextWindow: 32000,
+                  maxTokens: 4096,
+                  cost: {
+                    input: 0,
+                    output: 0,
+                    cacheRead: 0,
+                    cacheWrite: 0,
+                  },
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      await ensureOpenClawModelsJson(cfg);
+
+      const modelPath = path.join(resolveOpenClawAgentDir(), "models.json");
+      const raw = await fs.readFile(modelPath, "utf8");
+      const parsed = JSON.parse(raw) as {
+        providers: Record<string, { baseUrl?: string }>;
+      };
+
+      // The baseUrl should remain unchanged
+      expect(parsed.providers.ollama?.baseUrl).toBe("http://ollama:11434/v1/");
+    });
+  });
 });
