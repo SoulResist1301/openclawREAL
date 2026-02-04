@@ -254,10 +254,19 @@ export function normalizeProviders(params: {
       normalizedProvider = googleNormalized;
     }
 
-    // Default api to "openai-completions" for Ollama providers if not set.
-    if (normalizedKey === "ollama" && !normalizedProvider.api) {
-      mutated = true;
-      normalizedProvider = { ...normalizedProvider, api: "openai-completions" };
+    // Normalize Ollama providers: default api and ensure baseUrl ends with /v1.
+    if (normalizedKey === "ollama") {
+      if (!normalizedProvider.api) {
+        mutated = true;
+        normalizedProvider = { ...normalizedProvider, api: "openai-completions" };
+      }
+      // Ollama's OpenAI-compatible API requires /v1 suffix.
+      const baseUrl = normalizedProvider.baseUrl?.trim();
+      if (baseUrl && !baseUrl.endsWith("/v1") && !baseUrl.endsWith("/v1/")) {
+        mutated = true;
+        const separator = baseUrl.endsWith("/") ? "" : "/";
+        normalizedProvider = { ...normalizedProvider, baseUrl: `${baseUrl}${separator}v1` };
+      }
     }
 
     next[key] = normalizedProvider;
