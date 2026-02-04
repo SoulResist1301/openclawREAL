@@ -254,6 +254,12 @@ export function normalizeProviders(params: {
       normalizedProvider = googleNormalized;
     }
 
+    // Default api to "openai-completions" for Ollama providers if not set.
+    if (normalizedKey === "ollama" && !normalizedProvider.api) {
+      mutated = true;
+      normalizedProvider = { ...normalizedProvider, api: "openai-completions" };
+    }
+
     next[key] = normalizedProvider;
   }
 
